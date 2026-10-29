@@ -1,0 +1,49 @@
+WITH source_data AS (
+    SELECT *
+    FROM {{ source('raw_data', 'fuel_purchases') }}
+),
+
+cleaned AS (
+    SELECT
+        NULLIF(TRIM(FUEL_PURCHASE_ID), '') AS FUEL_PURCHASE_ID,
+        NULLIF(TRIM(TRIP_ID), '') AS TRIP_ID,
+        NULLIF(TRIM(TRUCK_ID), '') AS TRUCK_ID,
+        NULLIF(TRIM(DRIVER_ID), '') AS DRIVER_ID,
+
+        ROUND(
+            TRY_TO_NUMBER(NULLIF(TRIM(GALLONS), ''), 18, 3) * 3.78541,
+            3
+        ) AS LITERS,
+
+        ROUND(
+            TRY_TO_NUMBER(NULLIF(TRIM(PRICE_PER_GALLON), ''), 18, 4) / 3.78541,
+            4
+        ) AS PRICE_PER_LITER,
+
+        TRY_TO_NUMBER(NULLIF(TRIM(TOTAL_COST), ''), 18, 2) AS TOTAL_COST,
+        TRY_TO_DATE(NULLIF(TRIM(PURCHASE_DATE), '')) AS PURCHASE_DATE,
+        INITCAP(NULLIF(TRIM(LOCATION_CITY), '')) AS LOCATION_CITY,
+        UPPER(NULLIF(TRIM(LOCATION_STATE), '')) AS LOCATION_STATE,
+        NULLIF(TRIM(FUEL_CARD_NUMBER), '') AS FUEL_CARD_NUMBER,
+
+        _AIRBYTE_EXTRACTED_AT AS AIRBYTE_EXTRACTED_AT,
+        _AIRBYTE_RAW_ID AS AIRBYTE_RAW_ID
+
+    FROM source_data
+),
+
+deduplicated AS (
+    SELECT *
+    FROM cleaned
+    WHERE FUEL_PURCHASE_ID IS NOT NULL
+
+    QUALIFY ROW_NUMBER() OVER (
+        PARTITION BY FUEL_PURCHASE_ID
+        ORDER BY
+            AIRBYTE_EXTRACTED_AT DESC NULLS LAST,
+            AIRBYTE_RAW_ID DESC
+    ) = 1
+)
+
+SELECT *
+FROM deduplicated

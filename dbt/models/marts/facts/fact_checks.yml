@@ -1,0 +1,217 @@
+
+version: 2
+
+models:
+  - name: fct_trips
+    description: "One row per trip, enriched with load, date, and driver information."
+    columns:
+      - name: TRIP_ID
+        description: "Unique identifier for each trip."
+        data_tests:
+          - not_null
+          - unique
+
+      - name: LOAD_ID
+        description: "Load associated with the trip."
+
+      - name: CUSTOMER_KEY
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_customer')
+                field: CUSTOMER_KEY
+
+      - name: ROUTE_KEY
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_route')
+                field: ROUTE_KEY
+
+      - name: TRUCK_KEY
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_truck')
+                field: TRUCK_KEY
+
+      - name: TRAILER_KEY
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_trailer')
+                field: TRAILER_KEY
+
+      - name: DRIVER_KEY
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_driver')
+                field: DRIVER_KEY
+
+      - name: DISPATCH_DATE_KEY
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: DATE_KEY
+
+  - name: fct_delivery_events
+    description: "One row per delivery event with load information and calculated delay."
+    columns:
+      - name: EVENT_ID
+        description: "Unique identifier for each delivery event."
+        data_tests:
+          - not_null
+          - unique
+
+      - name: LOAD_ID
+        description: "Load associated with the delivery event."
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('loads')
+                field: LOAD_ID
+              config:
+                severity: warn
+
+      - name: TRIP_ID
+        description: "Trip associated with the delivery event."
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('fct_trips')
+                field: TRIP_ID
+              config:
+                severity: warn
+
+      - name: CUSTOMER_ID
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_customer')
+                field: CUSTOMER_ID
+
+      - name: ROUTE_ID
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_route')
+                field: ROUTE_ID
+
+      - name: FACILITY_ID
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_facility')
+                field: FACILITY_ID
+
+  - name: fct_fuel_purchases
+    description: "One row per deduplicated fuel purchase."
+    columns:
+      - name: FUEL_PURCHASE_ID
+        description: "Unique identifier for each fuel purchase."
+        data_tests:
+          - not_null
+          - unique
+
+      - name: TRUCK_KEY
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_truck')
+                field: TRUCK_KEY
+              config:
+                where: "TRUCK_KEY IS NOT NULL"
+
+      - name: DRIVER_KEY
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_driver')
+                field: DRIVER_KEY
+              config:
+                where: "DRIVER_KEY IS NOT NULL"
+
+  - name: fct_maintenance
+    description: "One row per maintenance record."
+    columns:
+      - name: MAINTENANCE_ID
+        data_tests:
+          - not_null
+          - unique
+
+      - name: TRUCK_KEY
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_truck')
+                field: TRUCK_KEY
+
+      - name: LOCATION_KEY
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_location')
+                field: LOCATION_KEY
+
+  - name: fct_safety_incidents
+    description: "One row per safety incident."
+    columns:
+      - name: INCIDENT_ID
+        data_tests:
+          - not_null
+          - unique
+
+      - name: TRUCK_KEY
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_truck')
+                field: TRUCK_KEY
+
+      - name: DRIVER_KEY
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_driver')
+                field: DRIVER_KEY
+
+  - name: fct_truck_daily
+    description: "One row per truck per snapshot date, including truck status, maintenance indicator, and completed trip count."
+    columns:
+      - name: TRUCK_KEY
+        description: "Foreign key identifying the truck."
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_truck')
+                field: TRUCK_KEY
+
+      - name: SNAPSHOT_DATE_KEY
+        description: "Date key for the daily truck snapshot."
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: DATE_KEY
+
+      - name: TRUCK_STATUS
+        description: "Truck status recorded on the snapshot date."
+        data_tests:
+          - not_null
+
+      - name: IS_IN_MAINTENANCE
+        description: "True when a maintenance record exists for the truck on that date."
+        data_tests:
+          - not_null
+
+      - name: TRIPS_COMPLETED
+        description: "Number of completed trips assigned to the truck on the arrival date."
+        data_tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: ">= 0"

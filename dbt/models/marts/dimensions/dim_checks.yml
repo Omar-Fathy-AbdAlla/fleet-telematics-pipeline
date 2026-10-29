@@ -1,0 +1,51 @@
+version: 2
+
+models:
+  - name: dim_truck
+    description: "Truck dimension with historical versions using SCD Type 2."
+    columns:
+      - name: TRUCK_ID
+        data_tests:
+          - not_null
+          - unique
+
+  - name: dim_driver
+    description: "Driver dimension with historical versions using SCD Type 2."
+    columns:
+      - name: DRIVER_KEY
+        description: "Unique key for each historical driver version."
+        data_tests:
+          - not_null
+          - unique
+
+      - name: DRIVER_ID
+        data_tests:
+          - not_null
+
+      - name: VALID_FROM
+        data_tests:
+          - not_null
+
+      - name: IS_CURRENT
+        data_tests:
+          - not_null
+
+  - name: dim_customer
+    description: "Customer dimension with contract start date and current record indicators."
+    columns:
+      - name: CUSTOMER_ID
+        data_tests:
+          - not_null
+          - unique
+
+      - name: VALID_FROM
+        data_tests:
+          - not_null
+
+      - name: VALID_TO
+        data_tests:
+          - not_null
+
+      - name: IS_CURRENT
+        data_tests:
+          - not_null

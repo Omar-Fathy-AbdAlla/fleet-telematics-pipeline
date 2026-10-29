@@ -1,0 +1,235 @@
+version: 2
+
+models:
+  - name: customers
+    description: "Cleaned staging model for customer records"
+    columns:
+      - name: CUSTOMER_ID
+        data_tests:
+          - not_null
+      - name: CUSTOMER_NAME
+        data_tests:
+          - not_null
+      - name: CUSTOMER_TYPE
+        data_tests:
+          - accepted_values:
+              values: ['Contract', 'Dedicated', 'Spot']
+      - name: ACCOUNT_STATUS
+        data_tests:
+          - accepted_values:
+              values: ['Active', 'Inactive']
+
+  - name: delivery_events
+    description: "Cleaned staging model for delivery event records"
+    columns:
+      - name: EVENT_ID
+        data_tests:
+          - not_null
+      - name: EVENT_TYPE
+        data_tests:
+          - not_null
+      - name: LOAD_ID
+        data_tests:
+          - not_null
+
+  - name: diesel_prices
+    description: "Cleaned staging model for diesel price records"
+    columns:
+      - name: EFFECTIVE_DATE
+        data_tests:
+          - not_null
+      - name: PRICE_PER_LITER  
+        data_tests:
+          - not_null
+
+  - name: drivers
+    description: "Cleaned staging model for driver records"
+    columns:
+      - name: DRIVER_ID
+        data_tests:
+          - not_null
+      - name: FIRST_NAME
+        data_tests:
+          - not_null
+      - name: LAST_NAME
+        data_tests:
+          - not_null
+      - name: YEARS_EXPERIENCE
+        data_tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 80
+
+  - name: facilities
+    description: "Cleaned staging model for facility records"
+    columns:
+      - name: FACILITY_ID
+        data_tests:
+          - not_null
+      - name: FACILITY_NAME
+        data_tests:
+          - not_null
+      - name: LATITUDE
+        data_tests:
+          - dbt_utils.accepted_range:
+              min_value: -90
+              max_value: 90
+      - name: LONGITUDE
+        data_tests:
+          - dbt_utils.accepted_range:
+              min_value: -180
+              max_value: 180
+
+  - name: fuel_purchases
+    description: "Cleaned staging model for fuel purchase records"
+    columns:
+      - name: FUEL_PURCHASE_ID
+        data_tests:
+          - not_null
+      - name: LITERS 
+        data_tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+      - name: PRICE_PER_LITER  
+        data_tests:
+          - not_null
+      - name: TOTAL_COST
+        data_tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+
+  - name: loads
+    description: "Cleaned staging model for shipment load records"
+    columns:
+      - name: LOAD_ID
+        data_tests:
+          - not_null
+      - name: CUSTOMER_ID
+        data_tests:
+          - not_null
+      - name: PIECES
+        data_tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+      - name: WEIGHT_KG 
+        data_tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+      - name: REVENUE
+        data_tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+
+  - name: maintenance_records
+    description: "Cleaned staging model for maintenance records"
+    columns:
+      - name: MAINTENANCE_ID
+        data_tests:
+          - not_null
+      - name: TRUCK_ID
+        data_tests:
+          - not_null
+      - name: MAINTENANCE_DATE
+        data_tests:
+          - not_null
+      - name: TOTAL_COST
+        data_tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+
+  - name: routes
+    description: "Cleaned staging model for route records"
+    columns:
+      - name: ROUTE_ID
+        data_tests:
+          - not_null
+      - name: ORIGIN_CITY
+        data_tests:
+          - not_null
+      - name: DESTINATION_CITY
+        data_tests:
+          - not_null
+      - name: BASE_RATE_PER_KM  
+        data_tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+      - name: FUEL_SURCHARGE_RATE_PER_KM 
+        data_tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+      - name: TYPICAL_DISTANCE_KM  
+        data_tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+
+  - name: safety_incidents
+    description: "Cleaned staging model for safety incident records"
+    columns:
+      - name: INCIDENT_ID
+        data_tests:
+          - not_null
+      - name: INCIDENT_DATE
+        data_tests:
+          - not_null
+      - name: INCIDENT_TYPE
+        data_tests:
+          - not_null
+      - name: CLAIM_AMOUNT
+        data_tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+
+  - name: trailers
+    description: "Cleaned staging model for trailer records"
+    columns:
+      - name: TRAILER_ID
+        data_tests:
+          - not_null
+      - name: VIN
+        data_tests:
+          - not_null
+      - name: MODEL_YEAR
+        data_tests:
+          - dbt_utils.accepted_range:
+              min_value: 1800
+              max_value: 2026
+
+  - name: trips
+    description: "Cleaned staging model for trip records"
+    columns:
+      - name: TRIP_ID
+        data_tests:
+          - not_null
+      - name: LOAD_ID
+        data_tests:
+          - not_null
+      - name: TRUCK_ID
+        config:
+            severity: warn
+      - name: AVERAGE_L_PER_100KM  
+        data_tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+      - name: FUEL_LITERS_USED  
+        data_tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+      - name: ACTUAL_DISTANCE_KM  
+        data_tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+
+  - name: trucks
+    description: "Cleaned staging model for truck records"
+    columns:
+      - name: TRUCK_ID
+        data_tests:
+          - not_null
+      - name: VIN
+        data_tests:
+          - not_null
+      - name: MODEL_YEAR
+        data_tests:
+          - dbt_utils.accepted_range:
+              min_value: 1800
+              max_value: 2026

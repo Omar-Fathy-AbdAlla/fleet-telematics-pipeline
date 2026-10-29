@@ -1,0 +1,20 @@
+version: 2
+
+sources:
+  - name: DBT_STAGING
+    database: SUPPLYCHAIN_DW
+    schema: DBT_STAGING
+    tables:
+      - name: customers
+      - name: delivery_events
+      - name: diesel_prices
+      - name: drivers
+      - name: facilities
+      - name: fuel_purchases
+      - name: loads
+      - name: maintenance_records
+      - name: routes
+      - name: safety_incidents
+      - name: trailers
+      - name: trips
+      - name: trucks

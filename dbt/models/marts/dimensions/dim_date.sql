@@ -1,0 +1,90 @@
+
+{{ config(materialized='table') }}
+
+WITH all_source_dates AS (
+
+    SELECT DISPATCH_DATE AS SOURCE_DATE
+    FROM {{ ref('trips') }}
+    WHERE DISPATCH_DATE IS NOT NULL
+
+    UNION ALL
+
+    SELECT LOAD_DATE
+    FROM {{ ref('loads') }}
+    WHERE LOAD_DATE IS NOT NULL
+
+    UNION ALL
+
+    SELECT PURCHASE_DATE
+    FROM {{ ref('fuel_purchases') }}
+    WHERE PURCHASE_DATE IS NOT NULL
+
+    UNION ALL
+
+    SELECT MAINTENANCE_DATE
+    FROM {{ ref('maintenance_records') }}
+    WHERE MAINTENANCE_DATE IS NOT NULL
+
+    UNION ALL
+
+    SELECT INCIDENT_DATE
+    FROM {{ ref('safety_incidents') }}
+    WHERE INCIDENT_DATE IS NOT NULL
+
+    UNION ALL
+
+    SELECT TO_DATE(SCHEDULED_DATETIME)
+    FROM {{ ref('delivery_events') }}
+    WHERE SCHEDULED_DATETIME IS NOT NULL
+
+    UNION ALL
+
+    SELECT TO_DATE(ACTUAL_DATETIME)
+    FROM {{ ref('delivery_events') }}
+    WHERE ACTUAL_DATETIME IS NOT NULL
+
+),
+
+date_bounds AS (
+
+    SELECT
+        MIN(SOURCE_DATE) AS MIN_DATE,
+        MAX(SOURCE_DATE) AS MAX_DATE
+    FROM all_source_dates
+
+),
+
+date_spine AS (
+
+    SELECT
+        DATEADD(
+            DAY,
+            SEQ4(),
+            B.MIN_DATE
+        )::DATE AS FULL_DATE
+
+    FROM date_bounds B,
+         TABLE(GENERATOR(ROWCOUNT => 100000))
+
+    WHERE B.MIN_DATE IS NOT NULL
+      AND DATEADD(DAY, SEQ4(), B.MIN_DATE) <= B.MAX_DATE
+
+)
+
+SELECT
+    TO_NUMBER(TO_CHAR(FULL_DATE, 'YYYYMMDD')) AS DATE_KEY,
+    FULL_DATE,
+
+    YEAR(FULL_DATE) AS YEAR,
+    QUARTER(FULL_DATE) AS QUARTER,
+    MONTH(FULL_DATE) AS MONTH,
+    MONTHNAME(FULL_DATE) AS MONTH_NAME,
+
+    WEEKISO(FULL_DATE) AS WEEK_OF_YEAR,
+    DAYOFMONTH(FULL_DATE) AS DAY_OF_MONTH,
+    DAYOFWEEKISO(FULL_DATE) AS DAY_OF_WEEK,
+    DAYNAME(FULL_DATE) AS DAY_NAME,
+
+    DAYOFWEEKISO(FULL_DATE) IN (6, 7) AS IS_WEEKEND
+
+FROM date_spine
