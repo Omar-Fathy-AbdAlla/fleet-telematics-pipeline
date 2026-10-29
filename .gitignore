@@ -1,3 +1,6 @@
 .env
 *.log
 .DS_Store
+backend/.env.example
+backend/uvicorn.pid
+*.cpython-314.pyc

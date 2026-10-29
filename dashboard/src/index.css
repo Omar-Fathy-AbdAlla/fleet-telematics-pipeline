@@ -1,0 +1,13 @@
+@import "tailwindcss";
+
+/* dark: classes apply when <html> has the "dark" class (set by hooks/useTheme.jsx) */
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  color-scheme: light;
+  font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+:root.dark {
+  color-scheme: dark;
+}

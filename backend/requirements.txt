@@ -1,0 +1,6 @@
+fastapi>=0.141  # 0.141+ has built-in SSE (fastapi.sse)
+uvicorn[standard]>=0.30
+pydantic-settings>=2.4
+snowflake-connector-python>=3.12
+aiokafka>=0.12
+tzdata>=2024.1  # time-zone data for zoneinfo on Windows (Africa/Cairo in stream_kpis.py)
